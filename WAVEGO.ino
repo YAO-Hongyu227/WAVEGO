@@ -45,13 +45,14 @@ extern double PID_Z;
 extern double WALK_HEIGHT;
 extern float target_roll;
 extern float target_pitch;
+extern float target_yaw;
 
 /////////////////////// YAO 9/3/2024 upper level control/////////
 extern bool upper_flag = false;
 extern float turning_direction;
 extern float walking_distance;
 extern int crab_gait; 
-extern float adjust_yaw;
+// extern float adjust_yaw;
 extern double global_yaw;
 bool NOTWALK=true;
 
@@ -399,18 +400,18 @@ void serialCtrl(){
         crab_gait = val;
       }
 
-      else if(docReceive["var"] == "AdjustYaw"){
-        double d_val = val;
-        adjust_yaw = d_val;
-        Serial.print("received yaw is ");
-        Serial.print(adjust_yaw);
-      }
-      else if(docReceive["var"] == "AdjustRoll"){
-        double d_val = val;
-        adjust_roll = d_val;
-        Serial.print("received roll is ");
-        Serial.print(adjust_roll);
-      }
+      // else if(docReceive["var"] == "AdjustYaw"){
+      //   double d_val = val;
+      //   adjust_yaw = d_val;
+      //   Serial.print("received yaw is ");
+      //   Serial.print(adjust_yaw);
+      // }
+      // else if(docReceive["var"] == "AdjustRoll"){
+      //   double d_val = val;
+      //   adjust_roll = d_val;
+      //   Serial.print("received roll is ");
+      //   Serial.print(adjust_roll);
+      // }
 
       else if(docReceive["var"] == "swing"){
         digitalWrite(BUZZER, LOW);
@@ -506,8 +507,9 @@ void serialCtrl(){
           delay(100);         //change here to adjust the speed of swing
         }
       }
-
-else if(docReceive["var"] == "leanpitch"){
+      else if(docReceive["var"] == "UPDOWN"){
+        docReceive["dis"].as<double>();
+        double d_dis = docReceive["dis"];    //get the third parameter which controls the distance
         digitalWrite(BUZZER, LOW);
         delay(10);
         digitalWrite(BUZZER, HIGH);
@@ -515,7 +517,7 @@ else if(docReceive["var"] == "leanpitch"){
 
         //forward
         moveFB = 1;
-
+        Serial.println("Adjusting Height");
 
         //walk_lift = 0
         WALK_LIFT = 0;
@@ -528,18 +530,70 @@ else if(docReceive["var"] == "leanpitch"){
         NOTWALK = false;
         funcMode = 12;
 
-       
-
-        //change com_fb
-        double target_p = d_val;    //d_val is the target pitch
-        while(target_p != target_pitch)
+        double target_height = d_val;
+        while(target_height != WALK_HEIGHT)
         {
-          target_pitch += min(0.5,max(-0.5,target_p - target_pitch));
+          WALK_HEIGHT += min(d_dis,max(-d_dis,target_height - WALK_HEIGHT));
           delay(100);         //change here to adjust the speed of swing
         }
+      }
+    else if(docReceive["var"] == "RPY Control"){
+        digitalWrite(BUZZER, LOW);
+        delay(10);
+        digitalWrite(BUZZER, HIGH);
+        delay(10);
+        docReceive["dis"].as<double>();
+        double d_dis = docReceive["dis"];    //get the third parameter which controls the distance
+        double d_val = val;       //target RPY
 
-        Serial.print("Target Pitch: ");
-        Serial.println(target_p);
+        //forward
+        moveFB = 1;
+        imu_on = true;
+        //walk_lift = 0
+        WALK_LIFT = 0;
+        //freetrot 0, 0 
+        upper_flag = true;
+        walking_distance = 0;
+        turning_direction = 0;
+        NOTWALK = false;
+        funcMode = 12;
+
+        if(docReceive["var"] == "roll")
+        {
+          double target_r = d_val;
+          while(target_r != target_roll)
+          {
+            target_roll += min(d_dis,max(-d_dis,target_r - target_roll));
+            delay(100);         //change here to adjust the speed of swing
+          }
+          Serial.print("Target Roll: ");
+          Serial.println(target_r);
+        }
+        if(docReceive["var"] == "pitch")
+        {
+          double target_p = d_val;
+          while(target_p != target_pitch)
+          {
+            target_pitch += min(d_dis,max(-d_dis,target_p - target_pitch));
+            delay(100);         //change here to adjust the speed of swing
+          }
+
+          Serial.print("Target Pitch: ");
+          Serial.println(target_p);
+        }
+        if(docReceive["var"] == "yaw")
+        {
+          double target_y = d_val;
+          while(target_y != target_yaw)
+          {
+            target_yaw += min(d_dis,max(-d_dis,target_y - target_yaw));
+            delay(100);         //change here to adjust the speed of swing
+          }
+
+          Serial.print("Target Yaw: ");
+          Serial.println(target_y);
+        }
+        
       }
 
       else if(docReceive["var"] == "IMUon"){

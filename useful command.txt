@@ -1,5 +1,22 @@
-walk_height 不要低于95
+walk height 不要低于95
 
+
+----------------------------- 8.19 --------------------------------------
+
+RPY Control：
+
+{'var': "RPY Control", 'tar': "roll", 'val': 10,'dis': 1}
+
+Parameters:
+# 'tar' <string> should be 'roll'/'pitch'/'yaw', choosing the target we want to control
+# 'val' <int> is the target DEGREE value, could be negative
+# 'dis' <double> controls the moving speed, the larger the faster, could be decimal
+
+if tar == roll: return: "Target Roll+val"
+if tar == pitch: return: "Target Pitch+val"
+if tar == yaw: return: "Target Yaw+val"
+
+---------------------------------------------------------------------------
 #forward
 {'var': "move", 'val': 1}
 
@@ -337,11 +354,6 @@ Adjust Height
 
 
 {'var': "Interruptwalk"}
-
-
-
-
-
 
 
 

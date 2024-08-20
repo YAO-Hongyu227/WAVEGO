@@ -250,7 +250,6 @@ float turning_direction=0.0;
 float walking_distance = 0.0;
 float last_turning_direction=0.0;
 float temp_turning_direction=0.0;
-float adjust_yaw = 0.0,adjust_roll = 0.0;
 
 int crab_gait; 
 
@@ -850,6 +849,7 @@ void newsinglegait(uint8_t LegNum, float cycleInput, float directionInput, doubl
   double x_distance,z_distance,r_distance;
   double rDirection = directionInput*M_PI/180;
   WALK_RANGE = walking_distance;
+  double WL;
 
   //separate control of walk lift of each leg
   if(separate_leg_height == false) {WL = WALK_LIFT;}
@@ -1333,11 +1333,12 @@ double integral = 0;
 // double PID_X = 0.68,PID_Z=0.3;
 double PID_X = -0.5,PID_Z=0;
 
-double Adjust_Pitch = 0, Adjust_Roll = 0;
+double Adjust_Pitch = 0, Adjust_Roll = 0,Adjust_Yaw;
 
 
 float target_roll = 0;
 float target_pitch = 0;
+float target_yaw = 0;
 
 double sum_pitch,sum_roll,m_pitch,m_roll;
 int imu_cnt;
@@ -1346,9 +1347,11 @@ int imu_cnt;
 // the threshold for pitch and roll each time, not the final value
 float Once_Pitch_threshold = 10.0;
 float Once_Roll_threshold = 5.0;     //10.0
+float Once_Yaw_threshold = 5.0;
 double Adjust_Pitch_threshold = 10.0;
 double Adjust_Roll_threshold = 1.0;     //5.0 
-float kp_pitch = 0.01, kp_roll = 0.005;
+double Adjust_Yaw_threshold = 50.0;     //5.0 
+float kp_pitch = 0.01, kp_roll = 0.005, kp_yaw = 0.01;
 
 
 // freetrot
@@ -1409,15 +1412,17 @@ void newTrotGait(float GlobalInput, float directionAngle, int turnCmd){
 
   Adjust_Pitch = Adjust_Pitch - (max(min(pitch - target_pitch,Once_Pitch_threshold),-Once_Pitch_threshold) * kp_pitch);  //0.01
   Adjust_Roll = Adjust_Roll + (max(min(roll - target_roll,Once_Roll_threshold),-Once_Roll_threshold) * kp_roll);     //0.005
-
+  Adjust_Yaw = Adjust_Yaw + (max(min(yaw - target_yaw,Once_Yaw_threshold),-Once_Yaw_threshold) * kp_yaw);     //0.01
 
   Adjust_Pitch = max(min(Adjust_Pitch,Adjust_Pitch_threshold),-Adjust_Pitch_threshold);
   Adjust_Roll = max(min(Adjust_Roll,Adjust_Roll_threshold),-Adjust_Roll_threshold);
+  Adjust_Yaw = max(min(Adjust_Yaw,Adjust_Yaw_threshold),-Adjust_Yaw_threshold);
 
   if (imu_on == false)
   {
     Adjust_Pitch = 0;
     Adjust_Roll = 0;
+    Adjust_Yaw = 0;
   };
   // Serial.print("pitch: ");
   // Serial.print(pitch);
@@ -1436,11 +1441,12 @@ void newTrotGait(float GlobalInput, float directionAngle, int turnCmd){
   // PosIMU[1] = PID_X*M_PI/180;
   PosIMU[1] = Adjust_Pitch*M_PI/180;
   PosIMU[0] = Adjust_Roll*M_PI/180;
+  PosIMU[2] = Adjust_Yaw*M_PI/180;
   // PosIMU[0] = 0*M_PI/180;
   // PosIMU[1] = 0*M_PI/180;
 
   //这里决定旋转带不带方向
-  PosIMU[2] = adjust_yaw*M_PI/180;
+  
   // PosIMU[2] = -directionAngle*M_PI/180;
 
 
@@ -1723,7 +1729,7 @@ void newGait(float GlobalInput, float directionAngle, int turnCmd){
   PosIMU[0] = 0;
   //PosIMU[1] = 0;
   // PosIMU[2] = 0;
-  PosIMU[2] = adjust_yaw*M_PI/180;
+  PosIMU[2] = Adjust_Yaw*M_PI/180;
   // // PosIMU[1] = 30*M_PI/180;
   // PosIMU[2] = target_yaw;
 
@@ -1927,7 +1933,7 @@ void new_Trot_Turning_Gait(float GlobalInput, float directionAngle, float trunin
   PosIMU[0] = Adjust_Roll*M_PI/180;
   // PosIMU[0] = 0*M_PI/180;
   // PosIMU[1] = 0*M_PI/180;
-  PosIMU[2] = adjust_yaw*M_PI/180;
+  PosIMU[2] = Adjust_Yaw*M_PI/180;
 
 
     //O-OA
@@ -2246,11 +2252,11 @@ void TurningDegreeGait(float GlobalInput, float directionAngle, int turnCmd){
 
  
   //roll pitch yaw
-  PosIMU[0] = adjust_roll;
+  PosIMU[0] = Adjust_Roll;
   PosIMU[1] = 1*M_PI/180;
   // PosIMU[2] = 0;
   // // PosIMU[1] = 30*M_PI/180;
-  PosIMU[2] = adjust_yaw*M_PI/180;
+  PosIMU[2] = Adjust_Yaw*M_PI/180;
 
 
     //O-OA    x , z , y
