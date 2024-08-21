@@ -422,6 +422,7 @@ void serialCtrl(){
         //forward
         moveFB = 1;
 
+        
 
         //walk_lift = 0
         WALK_LIFT = 0;
@@ -443,6 +444,8 @@ void serialCtrl(){
           COM_FB += min(0.5,max(-0.5,target_fb - COM_FB));
           delay(100);         //change here to adjust the speed of swing
         }
+        Serial.print("Adjusting FBCOM to: ")
+        Serial.println(target_fb);
       }
 
       else if(docReceive["var"] == "UPDOWN"){
@@ -506,6 +509,8 @@ void serialCtrl(){
           COM_LR += min(0.5,max(-0.5,target_lr - COM_LR));
           delay(100);         //change here to adjust the speed of swing
         }
+        Serial.print("Adjusting LRCOM to: ")
+        Serial.println(target_lr);
       }
       else if(docReceive["var"] == "UPDOWN"){
         docReceive["dis"].as<double>();
@@ -557,8 +562,9 @@ void serialCtrl(){
         turning_direction = 0;
         NOTWALK = false;
         funcMode = 12;
-
-        if(docReceive["var"] == "roll")
+        Serial.println(docReceive["tar"]);
+        
+        if(docReceive["tar"] == "roll")
         {
           double target_r = d_val;
           while(target_r != target_roll)
@@ -569,7 +575,7 @@ void serialCtrl(){
           Serial.print("Target Roll: ");
           Serial.println(target_r);
         }
-        if(docReceive["var"] == "pitch")
+        if(docReceive["tar"] == "pitch")
         {
           double target_p = d_val;
           while(target_p != target_pitch)
@@ -581,7 +587,7 @@ void serialCtrl(){
           Serial.print("Target Pitch: ");
           Serial.println(target_p);
         }
-        if(docReceive["var"] == "yaw")
+        if(docReceive["tar"] == "yaw")
         {
           double target_y = d_val;
           while(target_y != target_yaw)

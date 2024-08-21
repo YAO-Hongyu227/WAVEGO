@@ -1350,7 +1350,7 @@ float Once_Roll_threshold = 5.0;     //10.0
 float Once_Yaw_threshold = 5.0;
 double Adjust_Pitch_threshold = 10.0;
 double Adjust_Roll_threshold = 1.0;     //5.0 
-double Adjust_Yaw_threshold = 50.0;     //5.0 
+double Adjust_Yaw_threshold = 25.0;     //25.0 
 float kp_pitch = 0.01, kp_roll = 0.005, kp_yaw = 0.01;
 
 
@@ -1412,7 +1412,8 @@ void newTrotGait(float GlobalInput, float directionAngle, int turnCmd){
 
   Adjust_Pitch = Adjust_Pitch - (max(min(pitch - target_pitch,Once_Pitch_threshold),-Once_Pitch_threshold) * kp_pitch);  //0.01
   Adjust_Roll = Adjust_Roll + (max(min(roll - target_roll,Once_Roll_threshold),-Once_Roll_threshold) * kp_roll);     //0.005
-  Adjust_Yaw = Adjust_Yaw + (max(min(yaw - target_yaw,Once_Yaw_threshold),-Once_Yaw_threshold) * kp_yaw);     //0.01
+  // Adjust_Yaw = Adjust_Yaw - (max(min(yaw - target_yaw,Once_Yaw_threshold),-Once_Yaw_threshold) * kp_yaw);     //0.01
+  Adjust_Yaw = target_yaw;    //use without IMU
 
   Adjust_Pitch = max(min(Adjust_Pitch,Adjust_Pitch_threshold),-Adjust_Pitch_threshold);
   Adjust_Roll = max(min(Adjust_Roll,Adjust_Roll_threshold),-Adjust_Roll_threshold);
