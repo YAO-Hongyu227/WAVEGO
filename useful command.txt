@@ -344,21 +344,43 @@ Adjust Height
 {'var': "UPDOWN", 'val': 90,'dis': 1}
 
 
-
+#CLIMB
+{'var': "ClimbTest", 'val': 1}
 {'var': "move", 'val': 1}
 
 {'var': "TriangularWalk", 'val': 0,'dis': 40}
 
+#END CLIMB
+
+{'var': "StopClimb"}
+{'var': "ClimbTest", 'val': 0}
+
+
+
+{'var': "ChangeClearance", 'val': 30}
 
 {'var': "move", 'val': 3}
 
 
 {'var': "Interruptwalk"}
 
+{'var': "Numgesture", 'val': 100}
 
+{'var': "AdjustFBcom", 'dval': 10}
 
+{'var': "TargetPitch", 'dval': 10}
 
+{'var': "KP Pitch", 'fval': 0.02}
 
 sudo systemctl restart bluetooth
 sudo bluetoothctl
 sudo scan on
+
+
+
+{'var': "freeturn", 'val': -20}
+{'var': "move", 'val': 3}
+{'var': "ClimbTest", 'val': 1}
+{'var': "move", 'val': 1}
+{'var': "TriangularWalk", 'val': 0,'dis': 50}
+

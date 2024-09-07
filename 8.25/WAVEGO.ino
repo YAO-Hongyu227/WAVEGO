@@ -66,12 +66,6 @@ extern float RLB_bias;
 
 extern float kp_pitch;
 extern float climb_detect_thred;
-
-extern bool climb_test;
-extern bool isclimb;
-extern double Adjust_Pitch;
-extern bool separate_leg_height;
-extern bool withbrick;
 //////////////////////////////////////////////
 
 const char* UPPER_IP = "";
@@ -180,10 +174,8 @@ void serialCtrl(){
       //modified 4/2/2024, add a command to change the nuumber of gestures in a round
       else if(docReceive["var"] == "Numgesture"){
         int i_val = val;
-        float ite_ges = float(1)/float(i_val);
+        float ite_ges = 1/i_val;
         STEP_ITERATE = ite_ges;
-        Serial.print("Step Iterate: ");
-        Serial.println(STEP_ITERATE,6);
       }
       else if(docReceive["var"] == "AdjustMass"){
         int i_val = val;
@@ -254,8 +246,7 @@ void serialCtrl(){
 
       //YAO, 2/7/2024, modify kpitch and kroll
       else if(docReceive["var"] == "AdjustP_Pitch"){
-        docReceive["dval"].as<double>();
-        double d_val = docReceive["dval"];
+        double d_val = val;
         Kp_pitch = d_val;
         Serial.print("Change to : ");
         Serial.println(Kp_pitch);
@@ -434,7 +425,6 @@ void serialCtrl(){
         
 
         //walk_lift = 0
-        separate_leg_height = false;
         WALK_LIFT = 0;
 
         //freetrot 0, 0 
@@ -471,7 +461,6 @@ void serialCtrl(){
         Serial.println("Adjusting Height");
 
         //walk_lift = 0
-        separate_leg_height = false;
         WALK_LIFT = 0;
 
         //freetrot 0, 0 
@@ -501,7 +490,6 @@ void serialCtrl(){
 
 
         //walk_lift = 0
-        separate_leg_height = false;
         WALK_LIFT = 0;
 
         //freetrot 0, 0 
@@ -574,7 +562,6 @@ void serialCtrl(){
         turning_direction = 0;
         NOTWALK = false;
         funcMode = 12;
-        // Serial.println(docReceive["tar"]);
         
         if(docReceive["tar"] == "roll")
         {
@@ -628,17 +615,6 @@ void serialCtrl(){
               STAND_STILL = 0;
               Serial.println("Walk Interrupted");
             }
-      else if(docReceive["var"] == "ClimbTest"){
-        climb_test = val;
-        isclimb = false;
-        Serial.print("Climb Test: ");
-        Serial.println(climb_test);
-      }
-      else if(docReceive["var"] == "WithBrick"){
-        withbrick = val;
-        Serial.print("WITH BRICK: ");
-        Serial.println(withbrick);
-      }
 
       else if(docReceive["var"] == "Climb Detect Threshold"){
         float f_val = val;
@@ -648,17 +624,10 @@ void serialCtrl(){
       }
 
       else if(docReceive["var"] == "KP Pitch"){
-        docReceive["fval"].as<float>();
-        float f_val = docReceive["fval"];
+        float f_val = val;
         kp_pitch = f_val;   //defalut value is 0.01
         Serial.print("KP Pitch: ");
         Serial.println(kp_pitch);
-      }
-      else if(docReceive["var"] == "StopClimb"){
-        isclimb = false;
-        Adjust_Pitch = 0;
-        separate_leg_height = false;
-        Serial.println("Stop Climb");
       }
 
       // ll

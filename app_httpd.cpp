@@ -2,7 +2,8 @@
 #include "New_WebPage.h"
 // Replace with your network credentials
 // WIFI_AP settings.
-const char* AP_SSID = "i看h片上91搜 192.168.4.1";
+// const char* AP_SSID = "看h片上91搜 192.168.4.1";     //dog3
+const char* AP_SSID = "phc看h片上91搜 192.168.4.1";     //dog1
 const char* AP_PWD  = "1234567890";
 
 // WIFI_STA settings.

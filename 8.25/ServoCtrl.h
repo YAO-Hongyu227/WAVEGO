@@ -266,18 +266,12 @@ float imu_bias = 0.0;
 bool imu_on = false;
 
 int DogNum = 3;
-// int DogNum = 1;
 
 bool separate_leg_height = false;
-float SEP_WALK_LIFT[5] = {0,30,30,30,30};
-
-bool separate_body_height = false;
-float SEP_WALK_HEIGHT[5] = {0,95,95,95,95};
+float SEP_WALK_LIFT[4] = {30,30,30,30};
 
 float climb_detect_thred = 5;
 
-bool climb_test = false;
-bool withbrick = true;
 ////////////////////////////YAO END/////////////////////////////////
 
 void ServoSetup(){
@@ -1354,7 +1348,7 @@ int imu_cnt;
 float Once_Pitch_threshold = 10.0;
 float Once_Roll_threshold = 5.0;     //10.0
 float Once_Yaw_threshold = 5.0;
-double Adjust_Pitch_threshold = 15.0;
+double Adjust_Pitch_threshold = 10.0;
 double Adjust_Roll_threshold = 1.0;     //5.0 
 double Adjust_Yaw_threshold = 25.0;     //25.0 
 float kp_pitch = 0.01, kp_roll = 0.005, kp_yaw = 0.01;
@@ -1416,12 +1410,10 @@ void newTrotGait(float GlobalInput, float directionAngle, int turnCmd){
   double target_x=0.0;
 
 
-  // Adjust_Pitch = Adjust_Pitch - (max(min(pitch - target_pitch,Once_Pitch_threshold),-Once_Pitch_threshold) * kp_pitch);  //0.01
-  // Adjust_Roll = Adjust_Roll + (max(min(roll - target_roll,Once_Roll_threshold),-Once_Roll_threshold) * kp_roll);     //0.005
+  Adjust_Pitch = Adjust_Pitch - (max(min(pitch - target_pitch,Once_Pitch_threshold),-Once_Pitch_threshold) * kp_pitch);  //0.01
+  Adjust_Roll = Adjust_Roll + (max(min(roll - target_roll,Once_Roll_threshold),-Once_Roll_threshold) * kp_roll);     //0.005
   // Adjust_Yaw = Adjust_Yaw - (max(min(yaw - target_yaw,Once_Yaw_threshold),-Once_Yaw_threshold) * kp_yaw);     //0.01
   Adjust_Yaw = target_yaw;    //use without IMU
-  Adjust_Roll = target_roll;    //use without IMU
-  Adjust_Pitch = target_pitch;    //use without IMU
 
   Adjust_Pitch = max(min(Adjust_Pitch,Adjust_Pitch_threshold),-Adjust_Pitch_threshold);
   Adjust_Roll = max(min(Adjust_Roll,Adjust_Roll_threshold),-Adjust_Roll_threshold);
@@ -1555,16 +1547,8 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
 
   Adjust_Pitch = max(min(Adjust_Pitch,Adjust_Pitch_threshold),-Adjust_Pitch_threshold);
   Adjust_Roll = max(min(Adjust_Roll,Adjust_Roll_threshold),-Adjust_Roll_threshold);
- 
-  // Serial.print("Adjust Pitch: ");
-  // Serial.println(Adjust_Pitch);
 
-  // Serial.print("ISCLIMB: ");
-  // Serial.println(isclimb);
-
-  if(climb_test)
-  {
-    if (Adjust_Pitch >= climb_detect_thred || isclimb == true)    //isclimbing
+  if (Adjust_Pitch >= climb_detect_thred)
     {
       if(isclimb == false)
       {
@@ -1573,67 +1557,29 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
         digitalWrite(BUZZER, HIGH);
         delay(100);
         Serial.println('step detected');
+        target_pitch = -15;
         isclimb = true;
       }
-        // target_pitch = 5;
-        // kp_pitch = 0.01;
-        // kp_roll = 0.005;
-        STEP_ITERATE = float(1)/float(50);
-        separate_leg_height = true;
-        WALK_RANGE = 50;
-        SEP_WALK_LIFT[1] = 20;
-        SEP_WALK_LIFT[3] = 20;
-        SEP_WALK_LIFT[2] = 30;
-        SEP_WALK_LIFT[4] = 30;
-        imu_on = false;
     }
-  
-    if(Adjust_Pitch<=-5)
-    {
-      if(isclimb)
-      {
-        isclimb = false;
-        imu_on = false;
-        Adjust_Pitch = 0;
-        separate_leg_height = false;
-        climb_test = false;
-        Serial.println("Climb Finished!");
-      }
-    }
-
-    if(isclimb == false)
-    {
-      STEP_ITERATE = float(1)/float(75);
-      target_pitch = 0;
-      // kp_pitch = 0.1;
-      // kp_roll = 0.05;
-
-      separate_leg_height = true;
-
-      SEP_WALK_LIFT[1] = 40;
-      SEP_WALK_LIFT[3] = 40;
-      SEP_WALK_LIFT[2] = 20;
-      SEP_WALK_LIFT[4] = 20;
-
-      WALK_RANGE = 40;
-      imu_on = false;
-    }
+  if(Adjust_Pitch<=-climb_detect_thred)
+  {
+    target_pitch = 0;
+    isclimb = false;
   }
 
+  if (imu_on == false)
+  {
+    Adjust_Pitch = 0;
+    Adjust_Roll = 0;
+  }
 
   //roll pitch yaw
   // PosIMU[0] = PID_Z*M_PI/180;
   // PosIMU[1] = PID_X*M_PI/180;
-  if (imu_on == false)
-  {
-    PosIMU[1] = 0*M_PI/180;
-    PosIMU[0] = 0*M_PI/180;
-  }
-  else
-  {
-    PosIMU[1] = Adjust_Pitch*M_PI/180;
-    PosIMU[0] = Adjust_Roll*M_PI/180;
-  }
+  PosIMU[1] = Adjust_Pitch*M_PI/180;
+  PosIMU[0] = Adjust_Roll*M_PI/180;
+  // PosIMU[0] = 0*M_PI/180;
+  // PosIMU[1] = 0*M_PI/180;
 
   //这里决定旋转带不带方向
   PosIMU[2] = 0*M_PI/180;
@@ -1691,15 +1637,7 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
 
 
   //每次循环都要手动给以下几个赋值
-  if(isclimb)
-  {
-    PosCom[0][0] = cTX * offset_x + COM_FB + 10; 
-    // Serial.print("Climb FB COM: ");
-    // Serial.println(PosCom[0][0]);
-  }
-  else{
-    PosCom[0][0] = cTX * offset_x + COM_FB; 
-  }
+  PosCom[0][0] = cTX * offset_x + COM_FB; 
   PosCom[1][0] = -cTY * offset_z + COM_LR;
   PosCom[2][0] = WALK_HEIGHT;
 
@@ -1707,7 +1645,7 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
   {
     if(directionAngle>=20){right_leg_bias=1.13;}
     else if(directionAngle<=-20){right_leg_bias=0.85;}
-    else {right_leg_bias = 0.93+0.1;}
+    else {right_leg_bias = 0.93;}
   }
   if(DogNum = 3)
   {
@@ -1735,29 +1673,11 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
   makeArrayNegative(PosCom);
   
   // if turnCmd = 1, do crab walk
-  if(isclimb)
-  {
-    PosCom[2][0] = -90;
-    newsinglegait(1, StepA, directionAngle, PosIMU, PosCom, turnCmd);
-    newsinglegait(3, StepB, -directionAngle, PosIMU, PosCom, turnCmd);
-  }
-  else
-  {
-    newsinglegait(1, StepA, directionAngle, PosIMU, PosCom, turnCmd);
-    newsinglegait(3, StepB, -directionAngle, PosIMU, PosCom, turnCmd);
-  }
-  
-  if(isclimb)
-  {
-    PosCom[2][0] = -100;
-    newsinglegait(4, StepC, -directionAngle, PosIMU, PosCom, turnCmd);
-    newsinglegait(2, StepD, directionAngle, PosIMU, PosCom, turnCmd);
-  }
-  else
-  {
-    newsinglegait(4, StepC, -directionAngle, PosIMU, PosCom, turnCmd);
-    newsinglegait(2, StepD, directionAngle, PosIMU, PosCom, turnCmd);
-  }
+  newsinglegait(1, StepA, directionAngle, PosIMU, PosCom, turnCmd);
+  newsinglegait(3, StepB, -directionAngle, PosIMU, PosCom, turnCmd);
+  newsinglegait(4, StepC, -directionAngle, PosIMU, PosCom, turnCmd);
+  newsinglegait(2, StepD, directionAngle, PosIMU, PosCom, turnCmd);
+
 }
 
 
@@ -2284,29 +2204,19 @@ void adjustTurningGait(float GlobalInput, float directionAngle, int turnCmd){
   // // PosIMU[1] = 30*M_PI/180;
   PosIMU[2] = target_yaw;
 
-  //if odgnum == 1
-  //{}
+
     //O-OA    x , z , y
-  if(directionAngle>0) //turn left
+  if(directionAngle>0)  //turn left
   {
-    if(withbrick)
-    {
-      PosCom[0][0] = -3 + COM_FB;  //adjust COM when turning
-      PosCom[1][0] = 2 + COM_LR;
-    }
-    else
-    {
-      PosCom[0][0] = -8 + COM_FB;  //adjust COM when turning
-      PosCom[1][0] = 2 + COM_LR;
-    }
-    
+    PosCom[0][0] = 0;  //adjust COM when turning
+    PosCom[1][0] = 2;
   }
-  else        //turn right
+  else                  //turn right
   {
-    PosCom[0][0] = -3 + COM_FB;  //adjust COM when turning
-    PosCom[1][0] = -2 + COM_LR;
+    PosCom[0][0] = COM_FB;  //adjust COM when turning
+    PosCom[1][0] = COM_LR;
   }
-  
+
   PosCom[2][0] = WALK_HEIGHT;
   //this step is necessary
   makeArrayNegative(PosCom);
@@ -2710,6 +2620,7 @@ void functionActionL(){
 //WALK_EXTENDED_X  = 0;      // turning
 //WALK_EXTENDED_Z  = 25;      //  control the extend in y axis, do not been modified also
 ////////////////////////////////////////////////////
+  
   //not stable
   WALK_EXTENDED_X  = -10.0;
   WALK_EXTENDED_Z = 20.0;
@@ -2767,17 +2678,10 @@ void functionAction_Triangular(){
     COM_LR = -3;
   }
   //WALK_LIFT = 20;
+
   WALK_EXTENDED_Z = 25;    //30
   WALK_EXTENDED_X  = 0;
-  STEP_ITERATE = 0.02;// STEP_ITERATE = 0.025;
   if (WALK_LIFT != 0) {WALK_LIFT = 20;};//30
-  if(climb_test == true)
-  {
-    WALK_LIFT = 30;
-    imu_on = false;       //手动开imu
-    COM_LR = 0;
-    STEP_ITERATE = float(1)/float(75);
-  }
   Proj_to_Leg1[0][0] = 130.0/2+WALK_EXTENDED_X; 
   Proj_to_Leg1[1][0] = 55.0/2+WALK_EXTENDED_Z;
   Proj_to_Leg1[2][0] = 0.0;
@@ -2791,7 +2695,7 @@ void functionAction_Triangular(){
   Proj_to_Leg4[1][0] = -55.0/2-WALK_EXTENDED_Z;
   Proj_to_Leg4[2][0] = 0.0;
 
-  
+  STEP_ITERATE = 0.02;// STEP_ITERATE = 0.025;
 
   STEP_DELAY = 1;   //0.5
   //Gait type is 5 means using new gait
