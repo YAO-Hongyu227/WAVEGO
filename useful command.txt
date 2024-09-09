@@ -5,7 +5,7 @@ walk height 不要低于95
 
 RPY Control：
 
-{'var': "RPY Control", 'tar': "roll", 'val': 10,'dis': 1}
+{'var': "RPY Control", 'tar': "yaw", 'val': 10,'dis': 1}
 
 Parameters:
 # 'tar' <string> should be 'roll'/'pitch'/'yaw', choosing the target we want to control
@@ -376,7 +376,11 @@ sudo systemctl restart bluetooth
 sudo bluetoothctl
 sudo scan on
 
+{'var': "SCAN"}
 
+{'var': "WithBrick", 'val': 0}
+
+{'var': "AfterTurn", 'val': 0}
 
 {'var': "freeturn", 'val': -20}
 {'var': "move", 'val': 3}

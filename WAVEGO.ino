@@ -72,6 +72,8 @@ extern bool isclimb;
 extern double Adjust_Pitch;
 extern bool separate_leg_height;
 extern bool withbrick;
+extern int DogNum;
+extern bool afterturn;
 //////////////////////////////////////////////
 
 const char* UPPER_IP = "";
@@ -96,6 +98,23 @@ TaskHandle_t threadings;
 // placeHolders.
 void webServerInit();
 
+/////////////////////////////////////////////////////////////// SCAN //////////////////
+
+float sideLength = 30; // 正方形边长
+float step = 0.5; // 每次移动的步长
+
+// 函数：移动到指定坐标 (targetX, targetY)
+void moveTo(float targetX, float targetY) {
+    while (COM_LR != targetX || COM_FB != targetY) {
+        if (COM_LR < targetX) COM_LR += step;
+        if (COM_LR > targetX) COM_LR -= step;
+        if (COM_FB < targetY) COM_FB += step;
+        if (COM_FB > targetY) COM_FB -= step;
+        Serial.print("Moving to X: "); Serial.print(COM_LR); 
+        Serial.print(", Y: "); Serial.println(COM_FB);
+        delay(30); // 控制移动速度
+    }
+}
 
 // var(variable), val(value).                  
 void serialCtrl(){
@@ -524,6 +543,45 @@ void serialCtrl(){
         Serial.print("Adjusting LRCOM to: ");
         Serial.println(target_lr);
       }
+
+      else if(docReceive["var"] == "SCAN")
+      {
+        digitalWrite(BUZZER, LOW);
+        delay(10);
+        digitalWrite(BUZZER, HIGH);
+        delay(10);
+
+        // 初始化
+        moveFB = 1;
+        separate_leg_height = false;
+        WALK_LIFT = 0;
+        upper_flag = true;
+        double d_val = val;
+        walking_distance = 0;
+        turning_direction = 0;
+        NOTWALK = false;
+        funcMode = 12;
+
+        // 定义正方形的四个顶点
+        float halfSide = sideLength / 2;
+        float points[5][2] = {
+            {-halfSide, halfSide},  // 右上角
+            {halfSide, halfSide},   // 左上角
+            {halfSide, -halfSide},  // 左下角
+            {-halfSide, -halfSide},  // 右下角
+            {-halfSide, halfSide}  // 右上角
+        };
+
+        // 从原点开始画正方形
+        for (int i = 0; i < 5; i++) {
+            moveTo(points[i][0], points[i][1]); // 移动到每个顶点
+        }
+
+        // 回到原点 (0, 0)
+        moveTo(0, 0);
+        Serial.println("Scan Completed!");
+        moveFB = 3;
+      }
       else if(docReceive["var"] == "UPDOWN"){
         docReceive["dis"].as<double>();
         double d_dis = docReceive["dis"];    //get the third parameter which controls the distance
@@ -639,7 +697,16 @@ void serialCtrl(){
         Serial.print("WITH BRICK: ");
         Serial.println(withbrick);
       }
-
+      else if(docReceive["var"] == "AfterTurn"){
+        afterturn = val;
+        Serial.print("After Turn: ");
+        Serial.println(afterturn);
+      }
+      else if(docReceive["var"] == "DogNum"){
+        DogNum = val;
+        Serial.print("DogNum: ");
+        Serial.println(DogNum);
+      }
       else if(docReceive["var"] == "Climb Detect Threshold"){
         float f_val = val;
         climb_detect_thred = f_val;     //defalut value is 5

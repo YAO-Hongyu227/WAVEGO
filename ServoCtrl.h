@@ -278,6 +278,7 @@ float climb_detect_thred = 5;
 
 bool climb_test = false;
 bool withbrick = true;
+bool afterturn = false;
 ////////////////////////////YAO END/////////////////////////////////
 
 void ServoSetup(){
@@ -1703,13 +1704,13 @@ void newTriangularGait(float GlobalInput, float directionAngle, int turnCmd){
   PosCom[1][0] = -cTY * offset_z + COM_LR;
   PosCom[2][0] = WALK_HEIGHT;
 
-  if(DogNum = 1)
+  if(DogNum == 1)
   {
-    if(directionAngle>=20){right_leg_bias=1.13;}
-    else if(directionAngle<=-20){right_leg_bias=0.85;}
-    else {right_leg_bias = 0.93+0.1;}
+    if(directionAngle>=20){right_leg_bias=1.13+0.2;}
+    else if(directionAngle<=-20){right_leg_bias=0.85+0.25;}
+    else {right_leg_bias = 0.93+0.1+0.15+0.05;}
   }
-  if(DogNum = 3)
+  if(DogNum == 3)
   {
     if(directionAngle>=20){right_leg_bias=1.13+0.21-0.1;}
     else if(directionAngle<=-20){right_leg_bias=0.85+0.21;}
@@ -2291,20 +2292,28 @@ void adjustTurningGait(float GlobalInput, float directionAngle, int turnCmd){
   {
     if(withbrick)
     {
-      PosCom[0][0] = -3 + COM_FB;  //adjust COM when turning
-      PosCom[1][0] = 2 + COM_LR;
-    }
-    else
-    {
       PosCom[0][0] = -8 + COM_FB;  //adjust COM when turning
       PosCom[1][0] = 2 + COM_LR;
     }
-    
+    else    //without brick
+    {
+      PosCom[0][0] = -13 + COM_FB;  //adjust COM when turning
+      PosCom[1][0] = 2 + COM_LR;
+    }
   }
   else        //turn right
   {
-    PosCom[0][0] = -3 + COM_FB;  //adjust COM when turning
-    PosCom[1][0] = -2 + COM_LR;
+    if(withbrick)
+    {
+      PosCom[0][0] = -8 + COM_FB;  //adjust COM when turning
+      PosCom[1][0] = -2 + COM_LR;
+    }
+    else
+    {
+      PosCom[0][0] = -13 + COM_FB;  //adjust COM when turning
+      if(DogNum == 1) {PosCom[0][0] = -24 + COM_FB;}
+      PosCom[1][0] = -2 + COM_LR;
+    }
   }
   
   PosCom[2][0] = WALK_HEIGHT;
@@ -2486,6 +2495,11 @@ void functionActionG(){
 
   WALK_EXTENDED_Z = 25;
   WALK_EXTENDED_X  = 0;
+  if(afterturn)
+  {
+    WALK_EXTENDED_Z = 20;
+    WALK_EXTENDED_X  = -10;
+  }
   WALK_LIFT = 15;
   Proj_to_Leg1[0][0] = 130.0/2+WALK_EXTENDED_X; 
   Proj_to_Leg1[1][0] = 55.0/2+WALK_EXTENDED_Z;
@@ -2661,12 +2675,12 @@ void functionActionK(){
   
   COM_FB = 0;
   COM_LR = 0;
-  WALK_LIFT = 25    ;
+  WALK_LIFT = 25 ;
 
 
   //not stable
-  WALK_EXTENDED_X  = -10.0;
-  WALK_EXTENDED_Z = 20.0;
+  WALK_EXTENDED_X  = -20.0; //-10
+  WALK_EXTENDED_Z = 20.0;   //20
 
   Proj_to_Leg1[0][0] = 130.0/2+WALK_EXTENDED_X; 
   Proj_to_Leg1[1][0] = 55.0/2+WALK_EXTENDED_Z;
@@ -2769,6 +2783,11 @@ void functionAction_Triangular(){
   //WALK_LIFT = 20;
   WALK_EXTENDED_Z = 25;    //30
   WALK_EXTENDED_X  = 0;
+  if(afterturn)
+  {
+    WALK_EXTENDED_X  = -10.0;
+    WALK_EXTENDED_Z = 20.0;
+  }
   STEP_ITERATE = 0.02;// STEP_ITERATE = 0.025;
   if (WALK_LIFT != 0) {WALK_LIFT = 20;};//30
   if(climb_test == true)
